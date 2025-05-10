@@ -179,12 +179,3 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-
-
-@app.route('/create-admin')
-def create_admin():
-    from werkzeug.security import generate_password_hash
-    user = User(username='admin', password='admin123')
-    db.session.add(user)
-    db.session.commit()
-    return "Admin user created: admin / admin123"
