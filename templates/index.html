@@ -1,10 +1,11 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Virtual Garage Sale</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
+<meta charset="utf-8"/>
+<title>Virtual Garage Sale</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<style>
         .flag-icon {
             width: 24px;
             height: 24px;
@@ -18,28 +19,26 @@
     </style>
 </head>
 <body class="bg-light">
-
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/">Garage Sale</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="/login">Admin Login</a>
-                </li>
-            </ul>
-        </div>
-    </div>
+<div class="container-fluid">
+<a class="navbar-brand" href="/">Garage Sale</a>
+<div class="collapse navbar-collapse">
+<ul class="navbar-nav ms-auto">
+<li class="nav-item">
+<a class="nav-link" href="/login">Admin Login</a>
+</li>
+</ul>
+</div>
+</div>
 </nav>
-
 <div class="container py-4">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
           <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
             {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
+            <button class="btn-close" data-bs-dismiss="alert" type="button"></button>
+</div>
         {% endfor %}
       {% endif %}
     {% endwith %}
@@ -50,116 +49,115 @@
     <div class="row g-4">
         {% for item in items %}
         <div class="col-md-4">
-            <div class="card shadow-sm h-100">
+<div class="card shadow-sm h-100">
                 {% set images = item.image_filenames.split(',') if item.image_filenames else [] %}
                 {% if images %}
-                    <img src="{{ url_for('static', filename='images/' + images[item.thumbnail_index]) }}" class="card-img-top" style="height: 250px; object-fit: cover; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modal{{ item.id }}">
+                    <img class="card-img-top" data-bs-target="#modal{{ item.id }}" data-bs-toggle="modal" src="{{ url_for('static', filename='images/' + images[item.thumbnail_index]) }}" style="height: 250px; object-fit: cover; cursor: pointer;"/>
                 {% else %}
                     <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 250px;">No Image</div>
                 {% endif %}
                 <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">{{ item.name }}</h5>
-                    <p class="card-text">{{ item.description }}</p>
-                    <p><strong>CAD {{ item.price }}</strong></p>
-                    <p>Status:
+<h5 class="card-title">{{ item.name }}</h5>
+<p class="card-text">{{ item.description }}</p>
+<p><strong>CAD {{ item.price }}</strong></p>
+<p>Status:
                         {% if item.status == 'available' %}
-                            <img src="{{ url_for('static', filename='icons/green_flag.png') }}" class="flag-icon" title="Available">
-                            <span class="text-success">Available</span>
+                            <img class="flag-icon" src="{{ url_for('static', filename='icons/green_flag.png') }}" title="Available"/>
+<span class="text-success">Available</span>
                         {% elif item.status == 'reserved' %}
-                            <img src="{{ url_for('static', filename='icons/blue_flag.png') }}" class="flag-icon" title="Reserved">
-                            <span class="text-primary">Reserved</span>
+                            <img class="flag-icon" src="{{ url_for('static', filename='icons/blue_flag.png') }}" title="Reserved"/>
+<span class="text-primary">Reserved</span>
                         {% else %}
-                            <img src="{{ url_for('static', filename='icons/red_flag.png') }}" class="flag-icon" title="Sold">
-                            <span class="text-danger">Sold</span>
+                            <img class="flag-icon" src="{{ url_for('static', filename='icons/red_flag.png') }}" title="Sold"/>
+<span class="text-danger">Sold</span>
                         {% endif %}
                     </p>
                     {% if item.status == 'available' %}
-                    <form action="{{ url_for('reserve', item_id=item.id) }}" method="POST" class="mt-auto">
-                        <div class="mb-2">
-                            <input type="text" name="name" placeholder="Your name" class="form-control" required>
-                        </div>
-                        <div class="mb-2">
-                            <input type="email" name="email" placeholder="Your email" class="form-control" required>
-                        </div>
-                        <div class="mb-2">
-                            <input type="text" name="phone" placeholder="Your phone number" class="form-control" required>
-                        </div>
-                        <div class="mb-2">
-                            <input type="number" name="first_dibs" placeholder="Don't want to pay asking price? Enter first dibs at your desired price" class="form-control dibs-input">
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Reserve</button>
-                    </form>
+                    <form action="{{ url_for('reserve', item_id=item.id) }}" class="mt-auto" method="POST">
+<div class="mb-2">
+<input class="form-control" name="name" placeholder="Your name" required="" type="text"/>
+</div>
+<div class="mb-2">
+<input class="form-control" name="email" placeholder="Your email" required="" type="email"/>
+</div>
+<div class="mb-2">
+<input class="form-control" name="phone" placeholder="Your phone number" required="" type="text"/>
+</div>
+<div class="mb-2">
+<input class="form-control dibs-input" name="first_dibs" placeholder="Don't want to pay asking price? Enter first dibs at your desired price" type="number"/>
+</div>
+<button class="btn btn-primary w-100" type="submit">Reserve</button>
+</form>
                     {% else %}
-                    <button class="btn btn-secondary mt-auto" disabled>Not Available</button>
+                    <button class="btn btn-secondary mt-auto" disabled="">Not Available</button>
                     {% endif %}
                 </div>
-            </div>
-        </div>
+</div>
+</div>
 
         {% if images %}
-        <div class="modal fade" id="modal{{ item.id }}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">{{ item.name }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div id="carousel{{ item.id }}" class="carousel slide mb-3" data-bs-ride="carousel">
-                            <div class="carousel-inner">
+        <div aria-hidden="true" class="modal fade" id="modal{{ item.id }}" tabindex="-1">
+<div class="modal-dialog modal-lg modal-dialog-centered">
+<div class="modal-content">
+<div class="modal-header">
+<h5 class="modal-title">{{ item.name }}</h5>
+<button class="btn-close" data-bs-dismiss="modal" type="button"></button>
+</div>
+<div class="modal-body">
+<div class="carousel slide mb-3" data-bs-ride="carousel" id="carousel{{ item.id }}">
+<div class="carousel-inner">
                                 {% for i in range(images|length) %}
                                 <div class="carousel-item {% if i == 0 %}active{% endif %}">
-                                    <img src="{{ url_for('static', filename='images/' + images[i]) }}" class="d-block w-100" style="max-height: 500px; object-fit: contain;" alt="Image {{ i }}">
-                                </div>
+<img alt="Image {{ i }}" class="d-block w-100" src="{{ url_for('static', filename='images/' + images[i]) }}" style="max-height: 500px; object-fit: contain;"/>
+</div>
                                 {% endfor %}
                             </div>
-                            <button class="carousel-control-prev" type="button" data-bs-target="#carousel{{ item.id }}" data-bs-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Previous</span>
-                            </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#carousel{{ item.id }}" data-bs-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Next</span>
-                            </button>
-                        </div>
-
-                        <p>{{ item.description }}</p>
-                        <p><strong>CAD {{ item.price }}</strong></p>
-                        <p>Status:
+<button class="carousel-control-prev" data-bs-slide="prev" data-bs-target="#carousel{{ item.id }}" type="button">
+<span aria-hidden="true" class="carousel-control-prev-icon"></span>
+<span class="visually-hidden">Previous</span>
+</button>
+<button class="carousel-control-next" data-bs-slide="next" data-bs-target="#carousel{{ item.id }}" type="button">
+<span aria-hidden="true" class="carousel-control-next-icon"></span>
+<span class="visually-hidden">Next</span>
+</button>
+</div>
+<p>{{ item.description }}</p>
+<p><strong>CAD {{ item.price }}</strong></p>
+<p>Status:
                             {% if item.status == 'available' %}
-                                <img src="{{ url_for('static', filename='icons/green_flag.png') }}" class="flag-icon" title="Available">
-                                <span class="text-success">Available</span>
+                                <img class="flag-icon" src="{{ url_for('static', filename='icons/green_flag.png') }}" title="Available"/>
+<span class="text-success">Available</span>
                             {% elif item.status == 'reserved' %}
-                                <img src="{{ url_for('static', filename='icons/blue_flag.png') }}" class="flag-icon" title="Reserved">
-                                <span class="text-primary">Reserved</span>
+                                <img class="flag-icon" src="{{ url_for('static', filename='icons/blue_flag.png') }}" title="Reserved"/>
+<span class="text-primary">Reserved</span>
                             {% else %}
-                                <img src="{{ url_for('static', filename='icons/red_flag.png') }}" class="flag-icon" title="Sold">
-                                <span class="text-danger">Sold</span>
+                                <img class="flag-icon" src="{{ url_for('static', filename='icons/red_flag.png') }}" title="Sold"/>
+<span class="text-danger">Sold</span>
                             {% endif %}
                         </p>
                         {% if item.status == 'available' %}
                         <form action="{{ url_for('reserve', item_id=item.id) }}" method="POST">
-                            <div class="mb-2">
-                                <input type="text" name="name" placeholder="Your name" class="form-control" required>
-                            </div>
-                            <div class="mb-2">
-                                <input type="email" name="email" placeholder="Your email" class="form-control" required>
-                            </div>
-                            <div class="mb-2">
-                                <input type="text" name="phone" placeholder="Your phone number" class="form-control" required>
-                            </div>
-                            <div class="mb-2">
-                                <input type="number" name="first_dibs" placeholder="Don't want to pay asking price? Enter first dibs at your desired price" class="form-control dibs-input">
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Reserve</button>
-                        </form>
+<div class="mb-2">
+<input class="form-control" name="name" placeholder="Your name" required="" type="text"/>
+</div>
+<div class="mb-2">
+<input class="form-control" name="email" placeholder="Your email" required="" type="email"/>
+</div>
+<div class="mb-2">
+<input class="form-control" name="phone" placeholder="Your phone number" required="" type="text"/>
+</div>
+<div class="mb-2">
+<input class="form-control dibs-input" name="first_dibs" placeholder="Don't want to pay asking price? Enter first dibs at your desired price" type="number"/>
+</div>
+<button class="btn btn-primary w-100" type="submit">Reserve</button>
+</form>
                         {% else %}
-                        <button class="btn btn-secondary w-100" disabled>Not Available</button>
+                        <button class="btn btn-secondary w-100" disabled="">Not Available</button>
                         {% endif %}
                     </div>
-                </div>
-            </div>
-        </div>
+</div>
+</div>
+</div>
         {% endif %}
         {% endfor %}
     </div>
@@ -169,7 +167,6 @@
     </div>
     {% endif %}
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
