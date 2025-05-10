@@ -62,13 +62,13 @@
 <p><strong>CAD {{ item.price }}</strong></p>
 <p>Status:
                         {% if item.status == 'available' %}
-                            <img class="flag-icon" src="{{ url_for('static', filename='icons/green_flag.png') }}" title="Available"/>
+                            <img class="flag-icon" src="{{ url_for('static', filename='Icons/green_flag.png') }}" title="Available"/>
 <span class="text-success">Available</span>
                         {% elif item.status == 'reserved' %}
-                            <img class="flag-icon" src="{{ url_for('static', filename='icons/blue_flag.png') }}" title="Reserved"/>
+                            <img class="flag-icon" src="{{ url_for('static', filename='Icons/blue_flag.png') }}" title="Reserved"/>
 <span class="text-primary">Reserved</span>
                         {% else %}
-                            <img class="flag-icon" src="{{ url_for('static', filename='icons/red_flag.png') }}" title="Sold"/>
+                            <img class="flag-icon" src="{{ url_for('static', filename='Icons/red_flag.png') }}" title="Sold"/>
 <span class="text-danger">Sold</span>
                         {% endif %}
                     </p>
@@ -125,13 +125,13 @@
 <p><strong>CAD {{ item.price }}</strong></p>
 <p>Status:
                             {% if item.status == 'available' %}
-                                <img class="flag-icon" src="{{ url_for('static', filename='icons/green_flag.png') }}" title="Available"/>
+                                <img class="flag-icon" src="{{ url_for('static', filename='Icons/green_flag.png') }}" title="Available"/>
 <span class="text-success">Available</span>
                             {% elif item.status == 'reserved' %}
-                                <img class="flag-icon" src="{{ url_for('static', filename='icons/blue_flag.png') }}" title="Reserved"/>
+                                <img class="flag-icon" src="{{ url_for('static', filename='Icons/blue_flag.png') }}" title="Reserved"/>
 <span class="text-primary">Reserved</span>
                             {% else %}
-                                <img class="flag-icon" src="{{ url_for('static', filename='icons/red_flag.png') }}" title="Sold"/>
+                                <img class="flag-icon" src="{{ url_for('static', filename='Icons/red_flag.png') }}" title="Sold"/>
 <span class="text-danger">Sold</span>
                             {% endif %}
                         </p>
