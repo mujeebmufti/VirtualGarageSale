@@ -7,7 +7,7 @@ import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret-key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///garage.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://garage_db_5m16_user:kD7zwmDloBuB9k55HXFjPWs2pW2Ojthy@dpg-d0mfkpemcj7s7399aihg-a/garage_db_5m16'
 app.config['UPLOAD_FOLDER'] = 'static/images'
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
