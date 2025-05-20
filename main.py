@@ -143,6 +143,40 @@ def login():
             flash('Incorrect password', 'danger')
     return render_template('login.html')
 
+
+@app.route('/edit/<int:item_id>', methods=['GET', 'POST'])
+@login_required
+def edit_item(item_id):
+    item = Item.query.get_or_404(item_id)
+    existing_images = item.image_filenames.split(',') if item.image_filenames else []
+
+    if request.method == 'POST':
+        item.name = request.form.get('name')
+        item.description = request.form.get('description')
+        item.price = float(request.form.get('price')) if request.form.get('price') else None
+        item.status = request.form.get('status')
+
+        # Handle image deletion
+        delete_images = request.form.getlist('delete_images')
+        item.image_filenames = ','.join([img for img in existing_images if img not in delete_images])
+        existing_images = item.image_filenames.split(',') if item.image_filenames else []
+
+        # Handle image upload
+        new_images = request.files.getlist('images')
+        for image in new_images:
+            if image and image.filename:
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
+                image.save(filepath)
+                existing_images.append(image.filename)
+
+        item.image_filenames = ','.join(existing_images)
+
+        db.session.commit()
+        flash('Item updated successfully!', 'success')
+        return redirect(url_for('admin'))
+
+    return render_template('edit_item.html', item=item, existing_images=existing_images)
+
 @app.route('/logout')
 @login_required
 def logout():
