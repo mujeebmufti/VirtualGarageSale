@@ -21,8 +21,7 @@ db = SQLAlchemy(app)
 mail = Mail(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-with app.app_context():
-    db.create_all()
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
@@ -44,6 +43,9 @@ class Dibs(db.Model):
     email = db.Column(db.String(100))
     price = db.Column(db.Float)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+with app.app_context():
+    db.create_all()
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -227,9 +229,3 @@ def admin():
         dibs_by_item.setdefault(dib.item_id, []).append(dib)
 
     return render_template('admin.html', items=items, dibs_list=dibs_list, dibs_by_item=dibs_by_item)
-
-
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
