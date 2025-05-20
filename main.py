@@ -44,8 +44,9 @@ class Dibs(db.Model):
     price = db.Column(db.Float)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-with app.app_context():
-    db.create_all()
+# Uncomment to create DB first time
+#with app.app_context():
+#   db.create_all()
 
 @login_manager.user_loader
 def load_user(user_id):
