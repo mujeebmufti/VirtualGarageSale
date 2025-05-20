@@ -54,7 +54,7 @@
               <div class="col-3 text-center">
 <img class="img-fluid thumb mb-1" src="{{ url_for('static', filename='images/' + im) }}"/>
 <div>
-<input %}="" %}checked{%="" endif="" if="" loop.index0="item.thumbnail_index" name="thumbnail_index" type="radio" value="{{ loop.index0 }}" {%=""/>
+<input %}="" %}checked{%="" checked endif="" if="" loop.index0="item.thumbnail_index" name="thumbnail_index" type="radio" value="{{ loop.index0 }}" {%="" {% if loop.index0 == item.thumbnail_index %}checked{% endif %}=""/>
 <small class="text-muted">Thumb</small>
 </div>
 </div>
