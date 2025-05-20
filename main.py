@@ -5,6 +5,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from datetime import datetime
 import os
 
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret-key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://garage_db_5m16_user:kD7zwmDloBuB9k55HXFjPWs2pW2Ojthy@dpg-d0mfkpemcj7s7399aihg-a/garage_db_5m16'
@@ -20,7 +21,8 @@ db = SQLAlchemy(app)
 mail = Mail(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-
+with app.app_context():
+    db.create_all()
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
