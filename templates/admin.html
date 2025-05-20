@@ -1,5 +1,5 @@
-<!DOCTYPE html>
 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -63,11 +63,13 @@
             {% endif %}
 
             <select class="form-select w-auto mb-3" name="status">
-<option %}="" %}selected{%="" endif="" if="" item.status="available" value="available" {%="">Available</option>
-<option %}="" %}selected{%="" endif="" if="" item.status="reserved" value="reserved" {%="">Reserved</option>
-<option %}="" %}selected{%="" endif="" if="" item.status="sold" value="sold" {%="">Sold</option>
+<option value="available" {% if item.status == 'available' %}selected{% endif %}>Available</option>
+<option value="reserved" {% if item.status == 'reserved' %}selected{% endif %}>Reserved</option>
+<option value="sold" {% if item.status == 'sold' %}selected{% endif %}>Sold</option>
 </select>
-<a class="btn btn-warning btn-sm me-2" href="{{ url_for('edit_item', item_id={{ item.id }}) }}">Edit</a><a class="btn btn-danger btn-sm" href="{{ url_for('delete_item', item_id={{ item.id }}) }}">Delete</a><button class="btn btn-success">Update</button>
+<a class="btn btn-warning btn-sm me-2" href="{{ url_for('edit_item', item_id=item.id) }}">Edit</a>
+<a class="btn btn-danger btn-sm" href="{{ url_for('delete_item', item_id=item.id) }}">Delete</a>
+<button class="btn btn-success">Update</button>
 </div>
 
         {% if dibs_by_item[item.id] %}
