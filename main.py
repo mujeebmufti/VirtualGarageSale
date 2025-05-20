@@ -59,6 +59,24 @@ def item_detail(item_id):
     images = item.image_filenames.split(',') if item.image_filenames else []
     return render_template('item_detail.html', item=item, images=images)
 
+@app.route('/delete/<int:item_id>')
+@login_required
+def delete_item(item_id):
+    item = Item.query.get_or_404(item_id)
+
+    # Optionally, delete associated image files (uncomment if needed)
+    # if item.image_filenames:
+    #     for filename in item.image_filenames.split(','):
+    #         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    #         if os.path.exists(filepath):
+    #             os.remove(filepath)
+
+    db.session.delete(item)
+    db.session.commit()
+    flash("Item deleted.", "success")
+    return redirect(url_for('admin'))
+
+
 @app.route('/reserve/<int:item_id>', methods=['POST'])
 def reserve(item_id):
     item = Item.query.get_or_404(item_id)
