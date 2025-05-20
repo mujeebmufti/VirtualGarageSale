@@ -35,7 +35,7 @@
         <div class="mb-3">
             <label class="form-label">Existing Images (check to remove):</label>
             <div class="d-flex flex-wrap gap-3">
-                {% for i, img in enumerate(existing_images) %}
+                {% for img in existing_images %}
                 <div class="text-center">
                     <img src="{{ url_for('static', filename='images/' + img) }}" style="height:100px;"><br>
                     <input type="checkbox" name="delete_images" value="{{ img }}"> Remove
