@@ -276,8 +276,7 @@ def upload_to_supabase(file_obj, filename, bucket="images"):
             tmp_path = tmp.name
 
         # Upload temp file by path
-        supabase.storage.from_(bucket).upload(path=file_path, file=tmp_path,
-                                              file_options={"content-type": "image/jpeg", "upsert": True})
+        supabase.storage.from_(bucket).upload(path=file_path, file=tmp_path,file_options={"content-type": "image/jpeg", "x-upsert": "true"})
 
         signed_url_data = supabase.storage.from_(bucket).create_signed_url(file_path, 60 * 60 * 24 * 7)  # 7 days
         return signed_url_data.get('signedURL')
