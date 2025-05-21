@@ -1,10 +1,16 @@
+import os
+import io
+import uuid
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 from datetime import datetime
-import os
-
+from PIL import Image
+from supabase import create_client
+from supabase_client import supabase
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret-key'
@@ -125,6 +131,22 @@ def reserve(item_id):
 
 from werkzeug.utils import secure_filename  # add to imports (top)
 
+def compress_image(file_storage, max_width=1024, quality=75):
+    image = Image.open(file_storage)
+    image = image.convert('RGB')  # to handle PNGs or other modes
+
+    # Resize if it's too wide
+    if image.width > max_width:
+        height = int(max_width * image.height / image.width)
+        image = image.resize((max_width, height))
+
+    # Save to a BytesIO buffer
+    buffer = io.BytesIO()
+    image.save(buffer, format='JPEG', optimize=True, quality=quality)
+    buffer.seek(0)
+
+    return buffer
+
 @app.route('/add', methods=['POST'])
 @login_required
 def add_item():
@@ -136,10 +158,11 @@ def add_item():
     filenames = []
     for f in files:
         if f and f.filename:
-            fname = secure_filename(f.filename)
-            save_path = os.path.join(app.config['UPLOAD_FOLDER'], fname)
-            f.save(save_path)
-            filenames.append(fname)
+            compressed = compress_image(f)
+            fname = secure_filename(f.filename).rsplit('.', 1)[0] + '.jpg'
+            url = upload_to_supabase(compressed, fname)
+            if url:
+                filenames.append(url)
 
     item = Item(name=name,
                 price=price,
@@ -188,9 +211,11 @@ def edit_item(item_id):
         new_images = request.files.getlist('images')
         for image in new_images:
             if image and image.filename:
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
-                image.save(filepath)
-                existing_images.append(image.filename)
+                compressed = compress_image(image)
+                fname = secure_filename(image.filename).rsplit('.', 1)[0] + '.jpg'
+                url = upload_to_supabase(compressed, fname)
+                if url:
+                    existing_images.append(url)
 
         item.image_filenames = ','.join(existing_images)
 
@@ -230,3 +255,20 @@ def admin():
         dibs_by_item.setdefault(dib.item_id, []).append(dib)
 
     return render_template('admin.html', items=items, dibs_list=dibs_list, dibs_by_item=dibs_by_item)
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY")
+
+supabase = create_client(SUPABASE_URL, SUPABASE_SECRET_KEY)
+
+def upload_to_supabase(file_obj, filename, bucket="images"):
+    unique_name = f"{uuid.uuid4().hex}_{filename}"
+    file_path = f"uploads/{unique_name}"
+
+    try:
+        supabase.storage.from_(bucket).upload(file=file_obj, path=file_path, file_options={"content-type": "image/jpeg", "upsert": True})
+        signed_url_data = supabase.storage.from_(bucket).create_signed_url(file_path, 60 * 60 * 24 * 7)  # 7 days
+        return signed_url_data.get('signedURL')
+    except Exception as e:
+        print("Supabase upload error:", e)
+        return None

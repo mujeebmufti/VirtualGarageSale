@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Virtual Garage Sale</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<style>
+        .flag-icon {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon {
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="bg-light">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<div class="container-fluid">
+<a class="navbar-brand" href="/">Garage Sale</a>
+<div class="collapse navbar-collapse">
+<ul class="navbar-nav ms-auto">
+<li class="nav-item">
+<a class="nav-link" href="/login">Admin Login</a>
+</li>
+</ul>
+</div>
+</div>
+</nav>
+<div class="container py-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button class="btn-close" data-bs-dismiss="alert" type="button"></button>
+</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <h1 class="mb-4">Items for Sale</h1>
+
+    {% if items %}
+    <div class="row g-4">
+        {% for item in items %}
+        <div class="col-md-4">
+<div class="card shadow-sm h-100">
+                {% set images = item.image_filenames.split(',') if item.image_filenames else [] %}
+                {% if images %}
+                    <img class="card-img-top" data-bs-target="#modal{{ item.id }}" data-bs-toggle="modal" src="{{ url_for('static', filename='images/' + images[item.thumbnail_index]) }}" style="height: 250px; object-fit: cover; cursor: pointer;"/>
+                {% else %}
+                    <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 250px;">No Image</div>
+                {% endif %}
+                <div class="card-body d-flex flex-column">
+<h5 class="card-title">{{ item.name }}</h5>
+<p class="card-text">{{ item.description }}</p>
+<p><strong>CAD {{ item.price }}</strong></p>
+<p>Status:
+                        {% if item.status == 'available' %}
+                            <img class="flag-icon" src="{{ url_for('static', filename='Icons/green_flag.png') }}" title="Available"/>
+<span class="text-success">Available</span>
+                        {% elif item.status == 'reserved' %}
+                            <img class="flag-icon" src="{{ url_for('static', filename='Icons/blue_flag.png') }}" title="Reserved"/>
+<span class="text-primary">Reserved</span>
+                        {% else %}
+                            <img class="flag-icon" src="{{ url_for('static', filename='Icons/red_flag.png') }}" title="Sold"/>
+<span class="text-danger">Sold</span>
+                        {% endif %}
+                    </p>
+                    {% if item.status == 'available' %}
+                    <form action="{{ url_for('reserve', item_id=item.id) }}" class="mt-auto" method="POST">
+<div class="mb-2">
+<input class="form-control" name="name" placeholder="Your name" required="" type="text"/>
+</div>
+<div class="mb-2">
+<input class="form-control" name="email" placeholder="Your email" required="" type="email"/>
+</div>
+<div class="mb-2">
+<input class="form-control" name="phone" placeholder="Your phone number" required="" type="text"/>
+</div>
+<div class="mb-2">
+<input class="form-control dibs-input" name="first_dibs" placeholder="Don't want to pay asking price? Enter first dibs at your desired price" type="number"/>
+</div>
+<button class="btn btn-primary w-100" type="submit">Reserve</button>
+</form>
+                    {% else %}
+                    <button class="btn btn-secondary mt-auto" disabled="">Not Available</button>
+                    {% endif %}
+                </div>
+</div>
+</div>
+
+        {% if images %}
+        <div aria-hidden="true" class="modal fade" id="modal{{ item.id }}" tabindex="-1">
+<div class="modal-dialog modal-lg modal-dialog-centered">
+<div class="modal-content">
+<div class="modal-header">
+<h5 class="modal-title">{{ item.name }}</h5>
+<button class="btn-close" data-bs-dismiss="modal" type="button"></button>
+</div>
+<div class="modal-body">
+<div class="carousel slide mb-3" data-bs-ride="carousel" id="carousel{{ item.id }}">
+<div class="carousel-inner">
+                                {% for i in range(images|length) %}
+                                <div class="carousel-item {% if i == 0 %}active{% endif %}">
+<img alt="Image {{ i }}" class="d-block w-100" src="{{ url_for('static', filename='images/' + images[i]) }}" style="max-height: 500px; object-fit: contain;"/>
+</div>
+                                {% endfor %}
+                            </div>
+<button class="carousel-control-prev" data-bs-slide="prev" data-bs-target="#carousel{{ item.id }}" type="button">
+<span aria-hidden="true" class="carousel-control-prev-icon"></span>
+<span class="visually-hidden">Previous</span>
+</button>
+<button class="carousel-control-next" data-bs-slide="next" data-bs-target="#carousel{{ item.id }}" type="button">
+<span aria-hidden="true" class="carousel-control-next-icon"></span>
+<span class="visually-hidden">Next</span>
+</button>
+</div>
+<p>{{ item.description }}</p>
+<p><strong>CAD {{ item.price }}</strong></p>
+<p>Status:
+                            {% if item.status == 'available' %}
+                                <img class="flag-icon" src="{{ url_for('static', filename='Icons/green_flag.png') }}" title="Available"/>
+<span class="text-success">Available</span>
+                            {% elif item.status == 'reserved' %}
+                                <img class="flag-icon" src="{{ url_for('static', filename='Icons/blue_flag.png') }}" title="Reserved"/>
+<span class="text-primary">Reserved</span>
+                            {% else %}
+                                <img class="flag-icon" src="{{ url_for('static', filename='Icons/red_flag.png') }}" title="Sold"/>
+<span class="text-danger">Sold</span>
+                            {% endif %}
+                        </p>
+                        {% if item.status == 'available' %}
+                        <form action="{{ url_for('reserve', item_id=item.id) }}" method="POST">
+<div class="mb-2">
+<input class="form-control" name="name" placeholder="Your name" required="" type="text"/>
+</div>
+<div class="mb-2">
+<input class="form-control" name="email" placeholder="Your email" required="" type="email"/>
+</div>
+<div class="mb-2">
+<input class="form-control" name="phone" placeholder="Your phone number" required="" type="text"/>
+</div>
+<div class="mb-2">
+<input class="form-control dibs-input" name="first_dibs" placeholder="Don't want to pay asking price? Enter first dibs at your desired price" type="number"/>
+</div>
+<button class="btn btn-primary w-100" type="submit">Reserve</button>
+</form>
+                        {% else %}
+                        <button class="btn btn-secondary w-100" disabled="">Not Available</button>
+                        {% endif %}
+                    </div>
+</div>
+</div>
+</div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">
+        No items listed yet. Check back soon!
+    </div>
+    {% endif %}
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".dibs-input").forEach(function(input) {
+        const form = input.closest("form");
+        const button = form.querySelector("button[type='submit']");
+        input.addEventListener("input", function() {
+            button.textContent = this.value.trim() !== "" ? "DIBS!" : "Reserve";
+        });
+    });
+});
+</script>
+</body>
+</html>
