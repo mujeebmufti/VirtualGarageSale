@@ -52,7 +52,7 @@
             <div class="row g-2 mb-3">
               {% for im in imgs %}
               <div class="col-3 text-center">
-<img class="img-fluid thumb mb-1" src="{{ url_for('static', filename='images/' + im) }}"/>
+<img class="img-fluid thumb mb-1" src="{{ im }}"/>
 <div>
 <input type="radio" name="thumbnail_index" value="{{ loop.index0 }}" {% if loop.index0 == item.thumbnail_index %}checked{% endif %}>
 <small class="text-muted">Thumb</small>

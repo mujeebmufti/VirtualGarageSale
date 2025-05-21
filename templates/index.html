@@ -52,7 +52,7 @@
 <div class="card shadow-sm h-100">
                 {% set images = item.image_filenames.split(',') if item.image_filenames else [] %}
                 {% if images %}
-                    <img class="card-img-top img-fluid" data-bs-target="#modal{{ item.id }}" data-bs-toggle="modal" src="{{ url_for('static', filename='images/' + images[item.thumbnail_index]) }}" style="height: 250px; object-fit: cover; cursor: pointer;"/>
+                    <img class="card-img-top img-fluid" data-bs-target="#modal{{ item.id }}" data-bs-toggle="modal" src="{{ images[item.thumbnail_index] }}" style="height: 250px; object-fit: cover; cursor: pointer;"/>
                 {% else %}
                     <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 250px;">No Image</div>
                 {% endif %}
@@ -108,7 +108,7 @@
 <div class="carousel-inner">
                                 {% for i in range(images|length) %}
                                 <div class="carousel-item {% if i == 0 %}active{% endif %}">
-<img alt="Image {{ i }}" class="d-block w-100" src="{{ url_for('static', filename='images/' + images[i]) }}" style="max-height: 500px; object-fit: contain;"/>
+<img alt="Image {{ i }}" class="d-block w-100" src="{{ images[i] }}" style="max-height: 500px; object-fit: contain;"/>
 </div>
                                 {% endfor %}
                             </div>
