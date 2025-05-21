@@ -1,6 +1,7 @@
 import os
 import io
 import uuid
+import tempfile
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
@@ -10,6 +11,7 @@ from PIL import Image
 from supabase import create_client
 from supabase_client import supabase
 from dotenv import load_dotenv
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -261,14 +263,25 @@ SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY")
 
 supabase = create_client(SUPABASE_URL, SUPABASE_SECRET_KEY)
 
+
 def upload_to_supabase(file_obj, filename, bucket="images"):
     unique_name = f"{uuid.uuid4().hex}_{filename}"
     file_path = f"uploads/{unique_name}"
 
     try:
-        supabase.storage.from_(bucket).upload(file=file_obj, path=file_path, file_options={"content-type": "image/jpeg", "upsert": True})
+        # Write buffer to temp file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
+            tmp.write(file_obj.read())
+            tmp.flush()  # Ensure all data is written
+            tmp_path = tmp.name
+
+        # Upload temp file by path
+        supabase.storage.from_(bucket).upload(path=file_path, file=tmp_path,
+                                              file_options={"content-type": "image/jpeg", "upsert": True})
+
         signed_url_data = supabase.storage.from_(bucket).create_signed_url(file_path, 60 * 60 * 24 * 7)  # 7 days
         return signed_url_data.get('signedURL')
+
     except Exception as e:
         print("Supabase upload error:", e)
         return None
