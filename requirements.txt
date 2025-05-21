@@ -19,3 +19,4 @@ psycopg2-binary
 Pillow
 supabase
 requests
+python-dotenv
