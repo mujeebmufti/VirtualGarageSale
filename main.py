@@ -306,17 +306,51 @@ def upload_to_supabase(file_obj, filename, bucket="images"):
     except Exception as e:
         print("Supabase upload error:", e)
         return None
-def get_signed_url(path):
+
+
+from datetime import datetime, timedelta
+
+
+def get_signed_url(path, item=None):
     if not path:
         return ""
+
+    now = datetime.utcnow()
+
+    # If item is provided and caching fields are present
+    if item and item.signed_urls and item.signed_urls_expiry and item.signed_urls_expiry > now:
+        # Use cached URLs
+        cached_urls = item.signed_urls.split(',')
+        paths = item.image_filenames.split(',') if item.image_filenames else []
+        try:
+            index = paths.index(path)
+            return cached_urls[index] if index < len(cached_urls) else ""
+        except ValueError:
+            # Path not found in image_filenames → fallback to fresh URL
+            pass
+
+    # Fallback: generate fresh URL
     try:
         response = supabase.storage.from_("images").create_signed_url(path, 3600)
         signed_url = response.get("signedURL") or response.get("signedUrl")
-        if signed_url:
-            return signed_url
-        else:
-            print("Error generating signed URL:", response)
-            return ""
+
+        # If item is provided, update full cache
+        if signed_url and item:
+            paths = item.image_filenames.split(',') if item.image_filenames else []
+            signed_urls = []
+            for p in paths:
+                resp = supabase.storage.from_("images").create_signed_url(p, 3600)
+                url = resp.get("signedURL") or resp.get("signedUrl") or ""
+                signed_urls.append(url)
+            item.signed_urls = ','.join(signed_urls)
+            item.signed_urls_expiry = now + timedelta(minutes=55)
+            db.session.commit()
+            # Return correct URL for current path
+            index = paths.index(path)
+            return signed_urls[index] if index < len(signed_urls) else ""
+
+        return signed_url or ""
+
     except Exception as e:
         print("Exception in get_signed_url:", e)
         return ""
