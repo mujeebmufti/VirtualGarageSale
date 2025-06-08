@@ -47,22 +47,23 @@
 <p>{{ item.description }}</p>
 <p><strong>CAD {{ item.price }}</strong></p>
 
-            {% set imgs = item.image_filenames.split(',') if item.image_filenames else [] %}
-            {% if imgs %}
-            <div class="row g-2 mb-3">
-              {% for im in imgs %}
-              <div class="col-3 text-center">
-<img class="img-fluid thumb mb-1" src="{{ im }}"/>
-<div>
-<input type="radio" name="thumbnail_index" value="{{ loop.index0 }}" {% if loop.index0 == item.thumbnail_index %}checked{% endif %}>
-<small class="text-muted">Thumb</small>
+    {% set imgs = item.signed_image_urls if item.signed_image_urls else [] %}
+{% if imgs %}
+<div class="row g-2 mb-3">
+  {% for i in range(imgs | length) %}
+  <div class="col-3 text-center">
+    <img class="img-fluid thumb mb-1" src="{{ imgs[i] }}"/>
+    <div>
+      <input type="radio" name="thumbnail_index" value="{{ i }}" {% if i == item.thumbnail_index %}checked{% endif %}>
+      <small class="text-muted">Thumb</small>
+    </div>
+  </div>
+  {% endfor %}
 </div>
-</div>
-              {% endfor %}
-            </div>
-            {% endif %}
+{% endif %}
 
-            <select class="form-select w-auto mb-3" name="status">
+
+<select class="form-select w-auto mb-3" name="status">
 <option value="available" {% if item.status == 'available' %}selected{% endif %}>Available</option>
 <option value="reserved" {% if item.status == 'reserved' %}selected{% endif %}>Reserved</option>
 <option value="sold" {% if item.status == 'sold' %}selected{% endif %}>Sold</option>

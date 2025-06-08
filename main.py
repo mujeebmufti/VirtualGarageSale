@@ -64,13 +64,22 @@ def load_user(user_id):
 def index():
     items = Item.query.order_by(Item.id.desc()).all()
     dibs_map = {d.item_id: True for d in Dibs.query.all()}
+
+    # ✅ For each item, generate fresh signed URLs
+    for item in items:
+        paths = item.image_filenames.split(',') if item.image_filenames else []
+        item.signed_image_urls = [get_signed_url(p) for p in paths]
+
     return render_template('index.html', items=items, dibs_map=dibs_map)
 
 @app.route('/item/<int:item_id>')
 def item_detail(item_id):
     item = Item.query.get_or_404(item_id)
-    images = item.image_filenames.split(',') if item.image_filenames else []
-    return render_template('item_detail.html', item=item, images=images)
+    paths = item.image_filenames.split(',') if item.image_filenames else []
+    item.signed_image_urls = [get_signed_url(p) for p in paths]
+
+    return render_template('item_detail.html', item=item)
+
 
 @app.route('/delete/<int:item_id>')
 @login_required
@@ -209,7 +218,7 @@ def edit_item(item_id):
         item.image_filenames = ','.join([img for img in existing_images if img not in delete_images])
         existing_images = item.image_filenames.split(',') if item.image_filenames else []
 
-        # Handle image upload
+        # Handle new image uploads
         new_images = request.files.getlist('images')
         for image in new_images:
             if image and image.filename:
@@ -225,7 +234,10 @@ def edit_item(item_id):
         flash('Item updated successfully!', 'success')
         return redirect(url_for('admin'))
 
-    return render_template('edit_item.html', item=item, existing_images=existing_images)
+    # ✅ Generate signed_image_urls for display in template
+    signed_image_urls = [get_signed_url(p) for p in existing_images]
+
+    return render_template('edit_item.html', item=item, existing_images=existing_images, signed_image_urls=signed_image_urls)
 
 @app.route('/logout')
 @login_required
@@ -248,6 +260,7 @@ def admin():
         flash('Item updated.', 'success')
         return redirect(url_for('admin'))
 
+    # GET request - load items
     items = Item.query.order_by(Item.id.desc()).all()
     dibs_list = Dibs.query.order_by(Dibs.timestamp.desc()).all()
 
@@ -255,6 +268,11 @@ def admin():
     dibs_by_item = {}
     for dib in dibs_list:
         dibs_by_item.setdefault(dib.item_id, []).append(dib)
+
+    # ✅ Add signed_image_urls to each item
+    for item in items:
+        paths = item.image_filenames.split(',') if item.image_filenames else []
+        item.signed_image_urls = [get_signed_url(p) for p in paths]
 
     return render_template('admin.html', items=items, dibs_list=dibs_list, dibs_by_item=dibs_by_item)
 
@@ -272,15 +290,27 @@ def upload_to_supabase(file_obj, filename, bucket="images"):
         # Write buffer to temp file
         with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
             tmp.write(file_obj.read())
-            tmp.flush()  # Ensure all data is written
+            tmp.flush()
             tmp_path = tmp.name
 
         # Upload temp file by path
-        supabase.storage.from_(bucket).upload(path=file_path, file=tmp_path,file_options={"content-type": "image/jpeg", "x-upsert": "true"})
+        supabase.storage.from_(bucket).upload(
+            path=file_path,
+            file=tmp_path,
+            file_options={"content-type": "image/jpeg", "x-upsert": "true"}
+        )
 
-        signed_url_data = supabase.storage.from_(bucket).create_signed_url(file_path, 60 * 60 * 24 * 7)  # 7 days
-        return signed_url_data.get('signedURL')
+        # CHANGE: ✅ Just return path, do not create signed URL here anymore
+        return file_path
 
     except Exception as e:
         print("Supabase upload error:", e)
+        return None
+
+def get_signed_url(path, bucket="images", expires_sec=3600):  # 1 hour expiry
+    try:
+        signed_url_data = supabase.storage.from_(bucket).create_signed_url(path, expires_sec)
+        return signed_url_data.get('signedURL')
+    except Exception as e:
+        print("Error generating signed URL:", e)
         return None

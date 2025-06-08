@@ -35,10 +35,10 @@
         <div class="mb-3">
             <label class="form-label">Existing Images (check to remove):</label>
             <div class="d-flex flex-wrap gap-3">
-                {% for img in existing_images %}
+               {% for i in range(existing_images | length) %}
                 <div class="text-center">
-                    <img src="{{ url_for('static', filename='images/' + img) }}" style="height:100px;"><br>
-                    <input type="checkbox" name="delete_images" value="{{ img }}"> Remove
+                    <img src="{{ signed_image_urls[i] }}" style="height:100px;"><br>
+                    <input type="checkbox" name="delete_images" value="{{ existing_images[i] }}"> Remove
                 </div>
                 {% endfor %}
             </div>
