@@ -307,10 +307,16 @@ def upload_to_supabase(file_obj, filename, bucket="images"):
         print("Supabase upload error:", e)
         return None
 
-def get_signed_url(path, bucket="images", expires_sec=3600):  # 1 hour expiry
+def get_signed_url(path):
+    if not path:
+        return ""
     try:
-        signed_url_data = supabase.storage.from_(bucket).create_signed_url(path, expires_sec)
-        return signed_url_data.get('signedURL')
+        response = supabase.storage.from_("images").create_signed_url(path, 3600)
+        if response.get("data") and response["data"].get("signedURL"):
+            return response["data"]["signedURL"]
+        else:
+            print("Error generating signed URL:", response)
+            return ""
     except Exception as e:
-        print("Error generating signed URL:", e)
-        return None
+        print("Exception in get_signed_url:", e)
+        return ""
