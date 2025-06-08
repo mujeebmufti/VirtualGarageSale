@@ -306,14 +306,14 @@ def upload_to_supabase(file_obj, filename, bucket="images"):
     except Exception as e:
         print("Supabase upload error:", e)
         return None
-
 def get_signed_url(path):
     if not path:
         return ""
     try:
         response = supabase.storage.from_("images").create_signed_url(path, 3600)
-        if response.get("data") and response["data"].get("signedURL"):
-            return response["data"]["signedURL"]
+        signed_url = response.get("signedURL") or response.get("signedUrl")
+        if signed_url:
+            return signed_url
         else:
             print("Error generating signed URL:", response)
             return ""
