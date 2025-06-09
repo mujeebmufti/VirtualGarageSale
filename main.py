@@ -354,3 +354,12 @@ def get_signed_url(path, item=None):
     except Exception as e:
         print("Exception in get_signed_url:", e)
         return ""
+
+
+if __name__ == '__main__':
+    with app.app_context():
+        from sqlalchemy import text
+        db.session.execute(text('ALTER TABLE item ADD COLUMN IF NOT EXISTS signed_urls TEXT'))
+        db.session.execute(text('ALTER TABLE item ADD COLUMN IF NOT EXISTS signed_urls_expiry TIMESTAMP'))
+        db.session.commit()
+        print("✅ Migration done — columns added.")
