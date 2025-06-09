@@ -355,8 +355,7 @@ def get_signed_url(path, item=None):
         print("Exception in get_signed_url:", e)
         return ""
 
-
-if __name__ == '__main__':
+if __name__ == '__main__' or os.getenv('RUN_MIGRATION') == 'true':
     with app.app_context():
         from sqlalchemy import text
         db.session.execute(text('ALTER TABLE item ADD COLUMN IF NOT EXISTS signed_urls TEXT'))
