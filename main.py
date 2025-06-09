@@ -65,18 +65,15 @@ def index():
     items = Item.query.order_by(Item.id.desc()).all()
     dibs_map = {d.item_id: True for d in Dibs.query.all()}
 
-    # ✅ For each item, generate fresh signed URLs
     for item in items:
-        paths = item.image_filenames.split(',') if item.image_filenames else []
-        item.signed_image_urls = [get_signed_url(p) for p in paths]
+        item.signed_image_urls = get_signed_urls(item)
 
     return render_template('index.html', items=items, dibs_map=dibs_map)
 
 @app.route('/item/<int:item_id>')
 def item_detail(item_id):
     item = Item.query.get_or_404(item_id)
-    paths = item.image_filenames.split(',') if item.image_filenames else []
-    item.signed_image_urls = [get_signed_url(p) for p in paths]
+    item.signed_image_urls = get_signed_urls(item)
 
     return render_template('item_detail.html', item=item)
 
@@ -234,10 +231,15 @@ def edit_item(item_id):
         flash('Item updated successfully!', 'success')
         return redirect(url_for('admin'))
 
-    # ✅ Generate signed_image_urls for display in template
-    signed_image_urls = [get_signed_url(p) for p in existing_images]
+    # ✅ Use the new caching helper!
+    item.signed_image_urls = get_signed_urls(item)
 
-    return render_template('edit_item.html', item=item, existing_images=existing_images, signed_image_urls=signed_image_urls)
+    return render_template(
+        'edit_item.html',
+        item=item,
+        existing_images=existing_images,
+        signed_image_urls=item.signed_image_urls
+    )
 
 @app.route('/logout')
 @login_required
@@ -260,19 +262,15 @@ def admin():
         flash('Item updated.', 'success')
         return redirect(url_for('admin'))
 
-    # GET request - load items
     items = Item.query.order_by(Item.id.desc()).all()
     dibs_list = Dibs.query.order_by(Dibs.timestamp.desc()).all()
 
-    # Build dictionary for faster access in Jinja2
     dibs_by_item = {}
     for dib in dibs_list:
         dibs_by_item.setdefault(dib.item_id, []).append(dib)
 
-    # ✅ Add signed_image_urls to each item
     for item in items:
-        paths = item.image_filenames.split(',') if item.image_filenames else []
-        item.signed_image_urls = [get_signed_url(p) for p in paths]
+        item.signed_image_urls = get_signed_urls(item)
 
     return render_template('admin.html', items=items, dibs_list=dibs_list, dibs_by_item=dibs_by_item)
 
@@ -310,50 +308,33 @@ def upload_to_supabase(file_obj, filename, bucket="images"):
 
 from datetime import datetime, timedelta
 
-
-def get_signed_url(path, item=None):
-    if not path:
-        return ""
-
+def get_signed_urls(item):
     now = datetime.utcnow()
 
-    # If item is provided and caching fields are present
-    if item and item.signed_urls and item.signed_urls_expiry and item.signed_urls_expiry > now:
-        # Use cached URLs
-        cached_urls = item.signed_urls.split(',')
-        paths = item.image_filenames.split(',') if item.image_filenames else []
+    if item.signed_urls and item.signed_urls_expiry and item.signed_urls_expiry > now:
+        # Use cached signed URLs
+        return item.signed_urls.split(',')
+
+    # Refresh signed URLs
+    paths = item.image_filenames.split(',') if item.image_filenames else []
+    signed_urls = []
+
+    for p in paths:
         try:
-            index = paths.index(path)
-            return cached_urls[index] if index < len(cached_urls) else ""
-        except ValueError:
-            # Path not found in image_filenames → fallback to fresh URL
-            pass
+            resp = supabase.storage.from_("images").create_signed_url(p, 3600)
+            url = resp.get("signedURL") or resp.get("signedUrl") or ""
+            signed_urls.append(url)
+        except Exception as e:
+            print(f"Error generating signed URL for {p}: {e}")
+            signed_urls.append("")
 
-    # Fallback: generate fresh URL
-    try:
-        response = supabase.storage.from_("images").create_signed_url(path, 3600)
-        signed_url = response.get("signedURL") or response.get("signedUrl")
+    # Save to DB
+    item.signed_urls = ','.join(signed_urls)
+    item.signed_urls_expiry = now + timedelta(minutes=55)
+    db.session.commit()
 
-        # If item is provided, update full cache
-        if signed_url and item:
-            paths = item.image_filenames.split(',') if item.image_filenames else []
-            signed_urls = []
-            for p in paths:
-                resp = supabase.storage.from_("images").create_signed_url(p, 3600)
-                url = resp.get("signedURL") or resp.get("signedUrl") or ""
-                signed_urls.append(url)
-            item.signed_urls = ','.join(signed_urls)
-            item.signed_urls_expiry = now + timedelta(minutes=55)
-            db.session.commit()
-            # Return correct URL for current path
-            index = paths.index(path)
-            return signed_urls[index] if index < len(signed_urls) else ""
+    return signed_urls
 
-        return signed_url or ""
-
-    except Exception as e:
-        print("Exception in get_signed_url:", e)
-        return ""
 
 if __name__ == '__main__' or os.getenv('RUN_MIGRATION') == 'true':
     with app.app_context():
