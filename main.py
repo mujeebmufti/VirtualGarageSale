@@ -43,6 +43,8 @@ class Item(db.Model):
     status = db.Column(db.String(20), default='available')
     image_filenames = db.Column(db.Text)
     thumbnail_index = db.Column(db.Integer, default=0)
+    signed_urls = db.Column(db.Text)
+    signed_urls_expiry = db.Column(db.DateTime)
 
 class Dibs(db.Model):
     id = db.Column(db.Integer, primary_key=True)
