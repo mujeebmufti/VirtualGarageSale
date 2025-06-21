@@ -56,8 +56,8 @@ class Dibs(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 # Uncomment to create DB first time
-with app.app_context():
-   db.create_all()
+#with app.app_context():
+ #  db.create_all()
 
 @login_manager.user_loader
 def load_user(user_id):
