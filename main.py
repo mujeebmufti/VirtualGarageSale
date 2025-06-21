@@ -2,6 +2,7 @@ import os
 import io
 import uuid
 import tempfile
+from sqlalchemy import text
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
@@ -346,10 +347,11 @@ if __name__ == '__main__' or os.getenv('RUN_MIGRATION') == 'true':
         db.session.commit()
         print("✅ Migration done — columns added.")
 
+
 @app.route('/health')
 def health():
     try:
-        db.session.execute('SELECT 1')
+        db.session.execute(text('SELECT 1'))
         return "✅ DB Connected", 200
     except Exception as e:
         return f"❌ DB Error: {str(e)}", 500
