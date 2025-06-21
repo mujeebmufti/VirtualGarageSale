@@ -16,7 +16,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret-key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://garage_db_5m16_user:kD7zwmDloBuB9k55HXFjPWs2pW2Ojthy@dpg-d0mfkpemcj7s7399aihg-a/garage_db_5m16'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['UPLOAD_FOLDER'] = 'static/images'
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
@@ -345,3 +345,11 @@ if __name__ == '__main__' or os.getenv('RUN_MIGRATION') == 'true':
         db.session.execute(text('ALTER TABLE item ADD COLUMN IF NOT EXISTS signed_urls_expiry TIMESTAMP'))
         db.session.commit()
         print("✅ Migration done — columns added.")
+
+@app.route('/health')
+def health():
+    try:
+        db.session.execute('SELECT 1')
+        return "✅ DB Connected", 200
+    except Exception as e:
+        return f"❌ DB Error: {str(e)}", 500
